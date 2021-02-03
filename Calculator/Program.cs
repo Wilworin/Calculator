@@ -7,6 +7,9 @@ namespace Calculator
     {
         public static bool isRunning = true;  // Is the program running?
         public static List<string> history = new List<string>(); // Saves the history of entered commands.
+        public static string currentFormula = "";
+        public static double currentSum = 0.0;
+        public static string lastCommand = "";
 
         static void Main(string[] args)
         {
@@ -28,6 +31,9 @@ namespace Calculator
             }
         }
 
+        /// <summary>
+        /// Prints the help menu
+        /// </summary>
         static void PrintMenu ()
         {
             Console.WriteLine("You can use the 4 normal ways of math, + - * /  but also the following commands:");
@@ -40,10 +46,16 @@ namespace Calculator
             Console.WriteLine("QUIT - Quit the calculator.");
         }
 
-        public static double? Compute(double number1, double number2, string op)
+        /// <summary>
+        /// Does the calculations of the formulas that the user inputs.
+        /// </summary>
+        /// <param name="number1"></param>
+        /// <param name="number2"></param>
+        /// <param name="op">The operator that should be used.</param>
+        /// <returns>The result of the operation as a double.</returns>
+        public static double Compute(double number1, double number2, string op)
         {
-            // I decided to use a nullable double as return value. Then I an use NULL to show that something went wrong.
-            double? result = 0.0;
+            double result = 0.0;
             switch (op)
             {
                 case "+":
@@ -57,20 +69,19 @@ namespace Calculator
                     break;
                 case "/":
                     // I noticed that division by 0 doesn't give any exceptions when working with doubles.
+                    // Thus I have to create that Exception manually.
                     if (number2 == 0)
                     {
-                        Console.WriteLine("ERROR: You can't divide by zero!");
-                        result = null;
+                        throw new DivideByZeroException("ERROR: You can't divide by zero!");
                     }
                     result = number1 / number2;
                     break;
                 default:
-                    Console.WriteLine("Illegal operator: " + op);
-                    result = null;
-                    break;
+                    throw new ArgumentException("Illegal operator: " + op);
             }
             return result;
         }
+
 
         public static string AskCommand()
         {
@@ -78,11 +89,31 @@ namespace Calculator
             return Console.ReadLine();
         }
 
+        /// <summary>
+        /// If the input is a number, this method gets called.
+        /// </summary>
+        /// <param name="input"></param>
         public static void HandleNumber (double input)
         {
-
+            if (currentFormula == "")
+            {
+                currentSum = input;
+                currentFormula = input.ToString();
+            }
+            else
+            {
+                currentFormula += lastCommand + input.ToString();
+                currentSum = Compute(currentSum, input, lastCommand);
+                Console.WriteLine(currentFormula);
+                Console.WriteLine(currentSum);
+            }
+            lastCommand = "#";  // Last command is a number
         }
 
+        /// <summary>
+        /// If the input is a non-number, this method gets called.
+        /// </summary>
+        /// <param name="input"></param>
         public static void HandleCommand (string input)
         {
             input = input.ToLower();
@@ -105,14 +136,27 @@ namespace Calculator
                 case "list":
                     ShowList();
                     break;
+                case "+":
+                case "-":
+                case "*":
+                case "/":
+                    lastCommand = input;
+                    break;
                 default:
-                    Console.WriteLine("Syntax error. Please try again.");
+                    Console.WriteLine("Not a valid command. Please try again.");
                     break;
 
             }
         }
 
+        public static void AddFormulaToList ()
+        {
 
+        }
+
+        /// <summary>
+        /// Prints out the list of commands
+        /// </summary>
         public static void ShowList()
         {
             foreach (string s in history)
