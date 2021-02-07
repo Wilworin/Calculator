@@ -27,9 +27,30 @@ namespace Calculator.Tests
             var input = new StringReader("1,23");
             Console.SetIn(input);
             Assert.AreEqual(Program.AskNumber("Testing numbers."), 1.23);
+        
+            // I noticed that the AskNumber would cause an OutOfMemoryException if I called it as a test with the wrong parameter
+            // since it would just keep asking forever. I tried to develop a test for this but didn't get it to work.
             //input = new StringReader("Testing");
             //Console.SetIn(input);
             //Assert.ThrowsException<System.OutOfMemoryException>(() => Program.AskNumber("Testing letters."));
+        }
+
+        [TestMethod()]
+        public void HandleSpecialTest()
+        {
+            Assert.AreEqual(Program.HandleSpecial(42, ""), "42");
+            Assert.AreEqual(Program.HandleSpecial(4, ""), "4");
+            Assert.AreEqual(Program.HandleSpecial(42, "MARCUS"), "MARCUS");
+            Assert.AreEqual(Program.HandleSpecial(84, "RICHARD"), "RICHARD");
+            Assert.AreEqual(Program.HandleSpecial(666, "DEVIL"), "DEVIL");
+        }
+
+        [TestMethod()]
+        public void AskCommandTest()
+        {
+            var input = new StringReader("TESTING");
+            Console.SetIn(input);
+            Assert.AreEqual(Program.AskCommand(), "TESTING");
         }
     }
 }
